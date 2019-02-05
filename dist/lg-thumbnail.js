@@ -189,8 +189,14 @@
             }
             var belongsTo = _this.core.items[index].getAttribute('data-belongs-to');
 
+            var isPlanImage = _this.core.items[index].getAttribute('data-plan-images');
+            var planImageClass = '';
+            if (isPlanImage) {
+                planImageClass = 'plan-image';
+            }
+
             // CUSTOMIZED `thumbList`
-            thumbList += '<div class="lg-thumb-wrapper" data-belongs-to="' + belongsTo + '">';
+            thumbList += '<div class="lg-thumb-wrapper ' + planImageClass + '" data-belongs-to="' + belongsTo + '">';
             thumbList += '<div class="names">' + roomName + '</div>';
             thumbList += '<div data-vimeo-id="' + vimeoId + '" class="lg-thumb-item ' + lastOfRoom + '" style="width:' + _this.core.s.thumbWidth + 'px;"><img src="' + thumbImg + '" /></div>';
             thumbList += '</div>';
