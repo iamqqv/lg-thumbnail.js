@@ -69,7 +69,7 @@
 
         this.thumbOuter = null;
         this.thumbOuterWidth = 0;
-        this.thumbTotalWidth = this.core.items.length * (this.core.s.thumbWidth + this.core.s.thumbMargin);
+        this.thumbTotalWidth = this.core.items.length * (this.core.s.thumbWidth + 10 + this.core.s.thumbMargin);
         this.thumbIndex = this.core.index;
 
         // Thumbnail animation value
