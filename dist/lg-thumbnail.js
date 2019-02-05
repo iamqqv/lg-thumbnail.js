@@ -1,9 +1,4 @@
-/**!
- * lg-thumbnail.js | 1.0.0 | August 8th 2018
- * http://sachinchoolur.github.io/lg-thumbnail.js
- * Copyright (c) 2016 Sachin N; 
- * @license GPLv3 
- */(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.LgThumbnail = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.LgThumbnail = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 (function (global, factory) {
     if (typeof define === "function" && define.amd) {
         define([], factory);
@@ -34,12 +29,16 @@
     };
 
     var thumbnailDefaults = {
+        // custom default options:
+        floors: {},
+
+        // end custom default options
         thumbnail: true,
 
         animateThumb: true,
         currentPagerPosition: 'middle',
 
-        thumbWidth: 100,
+        thumbWidth: 140,
         thumbContHeight: 100,
         thumbMargin: 5,
 
@@ -119,6 +118,7 @@
         var thumbList = '';
         var vimeoErrorThumbSize = '';
         var $thumb;
+        var $thumbWrapper;
         var html = '<div class="lg-thumb-outer">' + '<div class="lg-thumb group">' + '</div>' + '</div>';
 
         switch (this.core.s.vimeoThumbSize) {
@@ -178,7 +178,22 @@
                 thumbImg = thumb;
             }
 
-            thumbList += '<div data-vimeo-id="' + vimeoId + '" class="lg-thumb-item" style="width:' + _this.core.s.thumbWidth + 'px; margin-right: ' + _this.core.s.thumbMargin + 'px"><img src="' + thumbImg + '" /></div>';
+            var roomName = '';
+            if (_this.core.items[index].getAttribute('data-room-name') !== null) {
+                roomName = _this.core.items[index].getAttribute('data-room-name');
+            }
+
+            var lastOfRoom = '';
+            if (_this.core.items[index].getAttribute('data-last-of-room')) {
+                lastOfRoom = 'last';
+            }
+            var belongsTo = _this.core.items[index].getAttribute('data-belongs-to');
+
+            // CUSTOMIZED `thumbList`
+            thumbList += '<div class="lg-thumb-wrapper" data-belongs-to="' + belongsTo + '">';
+            thumbList += '<div class="names">' + roomName + '</div>';
+            thumbList += '<div data-vimeo-id="' + vimeoId + '" class="lg-thumb-item ' + lastOfRoom + '" style="width:' + _this.core.s.thumbWidth + 'px;"><img src="' + thumbImg + '" /></div>';
+            thumbList += '</div>';
             vimeoId = '';
         }
 
@@ -199,6 +214,7 @@
         _this.core.outer.querySelector('.lg-thumb').innerHTML = thumbList;
 
         $thumb = _this.core.outer.querySelectorAll('.lg-thumb-item');
+        $thumbWrapper = _this.core.outer.querySelectorAll('.lg-thumb-wrapper');
 
         for (var n = 0; n < $thumb.length; n++) {
 
@@ -222,13 +238,24 @@
 
         // manage active class for thumbnail
         utils.addClass($thumb[_this.core.index], 'active');
+        utils.addClass($thumbWrapper[_this.core.index], 'active-group');
+
         utils.on(_this.core.el, 'onBeforeSlide.lgtm', function () {
 
             for (var j = 0; j < $thumb.length; j++) {
                 utils.removeClass($thumb[j], 'active');
+                utils.removeClass($thumbWrapper[j], 'active-group');
             }
 
             utils.addClass($thumb[_this.core.index], 'active');
+
+            // white border-top for all images in that currently active room
+            var activeRoomUid = $thumbWrapper[_this.core.index].getAttribute('data-belongs-to');
+            for (var i = 0; i < $thumb.length; i++) {
+                if (activeRoomUid === $thumbWrapper[i].getAttribute('data-belongs-to')) {
+                    utils.addClass($thumbWrapper[i], 'active-group');
+                }
+            }
         });
 
         for (var k = 0; k < $thumb.length; k++) {

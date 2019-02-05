@@ -1,10 +1,14 @@
 var thumbnailDefaults = {
+    // custom default options:
+    floors: {},
+
+    // end custom default options
     thumbnail: true,
 
     animateThumb: true,
     currentPagerPosition: 'middle',
 
-    thumbWidth: 100,
+    thumbWidth: 140,
     thumbContHeight: 100,
     thumbMargin: 5,
 
@@ -26,7 +30,7 @@ var thumbnailDefaults = {
     loadDailymotionThumbnail: true
 };
 
-var Thumbnail = function(element) {
+var Thumbnail = function (element) {
 
     this.el = element;
 
@@ -46,11 +50,11 @@ var Thumbnail = function(element) {
     return this;
 };
 
-Thumbnail.prototype.init = function() {
+Thumbnail.prototype.init = function () {
     var _this = this;
     if (this.core.s.thumbnail && this.core.items.length > 1) {
         if (this.core.s.showThumbByDefault) {
-            setTimeout(function() {
+            setTimeout(function () {
                 utils.addClass(_this.core.outer, 'lg-thumb-open');
             }, 700);
         }
@@ -79,11 +83,12 @@ Thumbnail.prototype.init = function() {
     }
 };
 
-Thumbnail.prototype.build = function() {
+Thumbnail.prototype.build = function () {
     var _this = this;
     var thumbList = '';
     var vimeoErrorThumbSize = '';
     var $thumb;
+    var $thumbWrapper;
     var html = '<div class="lg-thumb-outer">' +
         '<div class="lg-thumb group">' +
         '</div>' +
@@ -146,7 +151,23 @@ Thumbnail.prototype.build = function() {
             thumbImg = thumb;
         }
 
-        thumbList += '<div data-vimeo-id="' + vimeoId + '" class="lg-thumb-item" style="width:' + _this.core.s.thumbWidth + 'px; margin-right: ' + _this.core.s.thumbMargin + 'px"><img src="' + thumbImg + '" /></div>';
+        var roomName = '';
+        if (_this.core.items[index].getAttribute('data-room-name') !== null) {
+            roomName = _this.core.items[index].getAttribute('data-room-name');
+        }
+
+        var lastOfRoom = '';
+        if (_this.core.items[index].getAttribute('data-last-of-room')) {
+            lastOfRoom = 'last';
+        }
+        var belongsTo = _this.core.items[index].getAttribute('data-belongs-to');
+
+        // CUSTOMIZED `thumbList`
+        thumbList += '<div class="lg-thumb-wrapper" data-belongs-to="' + belongsTo + '">';
+        thumbList += '<div class="names">' + roomName + '</div>'
+        thumbList += '<div data-vimeo-id="' + vimeoId + '" class="lg-thumb-item ' + lastOfRoom + '" style="width:'
+            + _this.core.s.thumbWidth + 'px;"><img src="' + thumbImg + '" /></div>';
+        thumbList += '</div>';
         vimeoId = '';
     }
 
@@ -167,16 +188,17 @@ Thumbnail.prototype.build = function() {
     _this.core.outer.querySelector('.lg-thumb').innerHTML = thumbList;
 
     $thumb = _this.core.outer.querySelectorAll('.lg-thumb-item');
+    $thumbWrapper = _this.core.outer.querySelectorAll('.lg-thumb-wrapper');
 
     for (var n = 0; n < $thumb.length; n++) {
 
         /*jshint loopfunc: true */
-        (function(index) {
+        (function (index) {
             var $this = $thumb[index];
             var vimeoVideoId = $this.getAttribute('data-vimeo-id');
             if (vimeoVideoId) {
 
-                window['lgJsonP' + _this.el.getAttribute('lg-uid') + '' + n] = function(content) {
+                window['lgJsonP' + _this.el.getAttribute('lg-uid') + '' + n] = function (content) {
                     $this.querySelector('img').setAttribute('src', content[0][_this.core.s.vimeoThumbSize]);
                 };
 
@@ -190,24 +212,34 @@ Thumbnail.prototype.build = function() {
 
     // manage active class for thumbnail
     utils.addClass($thumb[_this.core.index], 'active');
-    utils.on(_this.core.el, 'onBeforeSlide.lgtm', function() {
+    utils.addClass($thumbWrapper[_this.core.index], 'active-group');
+
+    utils.on(_this.core.el, 'onBeforeSlide.lgtm', function () {
 
         for (var j = 0; j < $thumb.length; j++) {
             utils.removeClass($thumb[j], 'active');
+            utils.removeClass($thumbWrapper[j], 'active-group');
         }
 
         utils.addClass($thumb[_this.core.index], 'active');
 
+        // white border-top for all images in that currently active room
+        var activeRoomUid = $thumbWrapper[_this.core.index].getAttribute('data-belongs-to');
+        for (var i = 0; i < $thumb.length; i++) {
+            if (activeRoomUid === $thumbWrapper[i].getAttribute('data-belongs-to')) {
+                utils.addClass($thumbWrapper[i], 'active-group');
+            }
+        }
     });
 
     for (var k = 0; k < $thumb.length; k++) {
 
         /*jshint loopfunc: true */
-        (function(index) {
+        (function (index) {
 
-            utils.on($thumb[index], 'click.lg touchend.lg', function() {
+            utils.on($thumb[index], 'click.lg touchend.lg', function () {
 
-                setTimeout(function() {
+                setTimeout(function () {
 
                     // In IE9 and bellow touch does not support
                     // Go to slide if browser does not support css transitions
@@ -221,12 +253,12 @@ Thumbnail.prototype.build = function() {
         })(k);
     }
 
-    utils.on(_this.core.el, 'onBeforeSlide.lgtm', function() {
+    utils.on(_this.core.el, 'onBeforeSlide.lgtm', function () {
         _this.animateThumb(_this.core.index);
     });
 
-    utils.on(window, 'resize.lgthumb orientationchange.lgthumb', function() {
-        setTimeout(function() {
+    utils.on(window, 'resize.lgthumb orientationchange.lgthumb', function () {
+        setTimeout(function () {
             _this.animateThumb(_this.core.index);
             _this.thumbOuterWidth = _this.thumbOuter.offsetWidth;
         }, 200);
@@ -234,11 +266,11 @@ Thumbnail.prototype.build = function() {
 
 };
 
-Thumbnail.prototype.setTranslate = function(value) {
+Thumbnail.prototype.setTranslate = function (value) {
     utils.setVendor(this.core.outer.querySelector('.lg-thumb'), 'Transform', 'translate3d(-' + (value) + 'px, 0px, 0px)');
 };
 
-Thumbnail.prototype.animateThumb = function(index) {
+Thumbnail.prototype.animateThumb = function (index) {
     var $thumb = this.core.outer.querySelector('.lg-thumb');
     if (this.core.s.animateThumb) {
         var position;
@@ -281,7 +313,7 @@ Thumbnail.prototype.animateThumb = function(index) {
 };
 
 // Enable thumbnail dragging and swiping
-Thumbnail.prototype.enableThumbDrag = function() {
+Thumbnail.prototype.enableThumbDrag = function () {
 
     var _this = this;
     var startCoords = 0;
@@ -292,7 +324,7 @@ Thumbnail.prototype.enableThumbDrag = function() {
 
     utils.addClass(_this.thumbOuter, 'lg-grab');
 
-    utils.on(_this.core.outer.querySelector('.lg-thumb'), 'mousedown.lgthumb', function(e) {
+    utils.on(_this.core.outer.querySelector('.lg-thumb'), 'mousedown.lgthumb', function (e) {
         if (_this.thumbTotalWidth > _this.thumbOuterWidth) {
             // execute only on .lg-object
             e.preventDefault();
@@ -310,7 +342,7 @@ Thumbnail.prototype.enableThumbDrag = function() {
         }
     });
 
-    utils.on(window, 'mousemove.lgthumb', function(e) {
+    utils.on(window, 'mousemove.lgthumb', function (e) {
         if (isDraging) {
             tempLeft = _this.left;
             isMoved = true;
@@ -334,7 +366,7 @@ Thumbnail.prototype.enableThumbDrag = function() {
         }
     });
 
-    utils.on(window, 'mouseup.lgthumb', function() {
+    utils.on(window, 'mouseup.lgthumb', function () {
         if (isMoved) {
             isMoved = false;
             utils.removeClass(_this.thumbOuter, 'lg-dragging');
@@ -358,14 +390,14 @@ Thumbnail.prototype.enableThumbDrag = function() {
 
 };
 
-Thumbnail.prototype.enableThumbSwipe = function() {
+Thumbnail.prototype.enableThumbSwipe = function () {
     var _this = this;
     var startCoords = 0;
     var endCoords = 0;
     var isMoved = false;
     var tempLeft = 0;
 
-    utils.on(_this.core.outer.querySelector('.lg-thumb'), 'touchstart.lg', function(e) {
+    utils.on(_this.core.outer.querySelector('.lg-thumb'), 'touchstart.lg', function (e) {
         if (_this.thumbTotalWidth > _this.thumbOuterWidth) {
             e.preventDefault();
             startCoords = e.targetTouches[0].pageX;
@@ -373,7 +405,7 @@ Thumbnail.prototype.enableThumbSwipe = function() {
         }
     });
 
-    utils.on(_this.core.outer.querySelector('.lg-thumb'), 'touchmove.lg', function(e) {
+    utils.on(_this.core.outer.querySelector('.lg-thumb'), 'touchmove.lg', function (e) {
         if (_this.thumbTotalWidth > _this.thumbOuterWidth) {
             e.preventDefault();
             endCoords = e.targetTouches[0].pageX;
@@ -399,7 +431,7 @@ Thumbnail.prototype.enableThumbSwipe = function() {
         }
     });
 
-    utils.on(_this.core.outer.querySelector('.lg-thumb'), 'touchend.lg', function() {
+    utils.on(_this.core.outer.querySelector('.lg-thumb'), 'touchend.lg', function () {
         if (_this.thumbTotalWidth > _this.thumbOuterWidth) {
 
             if (isMoved) {
@@ -420,12 +452,12 @@ Thumbnail.prototype.enableThumbSwipe = function() {
 
 };
 
-Thumbnail.prototype.toggle = function() {
+Thumbnail.prototype.toggle = function () {
     var _this = this;
     if (_this.core.s.toggleThumb) {
         utils.addClass(_this.core.outer, 'lg-can-toggle');
         _this.thumbOuter.insertAdjacentHTML('beforeend', '<span class="lg-toggle-thumb lg-icon"></span>');
-        utils.on(_this.core.outer.querySelector('.lg-toggle-thumb'), 'click.lg', function() {
+        utils.on(_this.core.outer.querySelector('.lg-toggle-thumb'), 'click.lg', function () {
             if (utils.hasClass(_this.core.outer, 'lg-thumb-open')) {
                 utils.removeClass(_this.core.outer, 'lg-thumb-open');
             } else {
@@ -435,9 +467,9 @@ Thumbnail.prototype.toggle = function() {
     }
 };
 
-Thumbnail.prototype.thumbkeyPress = function() {
+Thumbnail.prototype.thumbkeyPress = function () {
     var _this = this;
-    utils.on(window, 'keydown.lgthumb', function(e) {
+    utils.on(window, 'keydown.lgthumb', function (e) {
         if (e.keyCode === 38) {
             e.preventDefault();
             utils.addClass(_this.core.outer, 'lg-thumb-open');
@@ -448,10 +480,10 @@ Thumbnail.prototype.thumbkeyPress = function() {
     });
 };
 
-Thumbnail.prototype.destroy = function(d) {
+Thumbnail.prototype.destroy = function (d) {
     if (this.core.s.thumbnail && this.core.items.length > 1) {
         utils.off(window, '.lgthumb');
-        if(!d) {
+        if (!d) {
             this.thumbOuter.parentNode.removeChild(this.thumbOuter);
         }
         utils.removeClass(this.core.outer, 'lg-has-thumb');
