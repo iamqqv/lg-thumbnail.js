@@ -168,12 +168,23 @@ Thumbnail.prototype.build = function () {
             planImageClass = 'plan-image';
         }
 
+        var objectImage = _this.core.items[index].getAttribute('data-object-name');
+        var objectName = '';
+        if (objectImage !== null) {
+            objectName = objectImage;
+        }
+
         // CUSTOMIZED `thumbList`
         thumbList += '<div class="lg-thumb-wrapper ' + planImageClass + '" data-belongs-to="' + belongsTo + '">';
         thumbList += '<div class="names">' + roomName + '</div>'
         thumbList += '<div data-vimeo-id="' + vimeoId + '" class="lg-thumb-item ' + lastOfRoom + '" style="width:'
             + _this.core.s.thumbWidth + 'px;"><img src="' + thumbImg + '" /></div>';
-        thumbList += '</div>';
+
+        if (objectImage !== null) {
+            thumbList += '<span class="object-annotation">' + objectName + '</span>';
+        }
+
+        thumbList += '</div>'; //closing thumb-wrapper
         vimeoId = '';
     }
 
