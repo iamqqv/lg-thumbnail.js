@@ -201,6 +201,12 @@
                 objectName = objectImage;
             }
 
+            var objectOutsideRoom = _this.core.items[index].getAttribute('data-outside-room');
+            var outsideRoomClass = '';
+            if (objectOutsideRoom !== null) {
+                outsideRoomClass = 'outside-room';
+            }
+
             var thumbWidth = '140';
             if (lastOfRoom) {
                 thumbWidth = '130;';
@@ -209,7 +215,7 @@
             // CUSTOMIZED `thumbList`
             thumbList += '<div class="lg-thumb-wrapper ' + planImageClass + '" data-belongs-to="' + belongsTo + '">';
             thumbList += '<div class="names">' + roomName + '</div>';
-            thumbList += '<div data-vimeo-id="' + vimeoId + '" class="lg-thumb-item ' + lastOfRoom + '" style="width:' + thumbWidth + 'px;">';
+            thumbList += '<div data-vimeo-id="' + vimeoId + '" class="lg-thumb-item ' + lastOfRoom + ' ' + outsideRoomClass + '" style="width:' + thumbWidth + 'px;">';
             thumbList += '<img src="' + thumbImg + '" />';
 
             if (objectImage !== null) {
