@@ -27,7 +27,9 @@ var thumbnailDefaults = {
     loadVimeoThumbnail: true,
     vimeoThumbSize: 'thumbnail_small',
 
-    loadDailymotionThumbnail: true
+    loadDailymotionThumbnail: true,
+
+    // appendFloorNameTo: '.lg-toolbar',
 };
 
 var Thumbnail = function (element) {
@@ -151,6 +153,19 @@ Thumbnail.prototype.build = function () {
             thumbImg = thumb;
         }
 
+        var planName = '';
+        if (_this.core.items[index].getAttribute('data-plan-name') !== null) {
+            planName = _this.core.items[index].getAttribute('data-plan-name');
+        }
+        if (planName.length > 256) {
+            planName = planName.slice(0, 256) + '...';
+        }
+
+        var floorName = '';
+        if (_this.core.items[index].getAttribute('data-floor-name') !== null) {
+            floorName = _this.core.items[index].getAttribute('data-floor-name');
+        }
+
         var roomName = '';
         if (_this.core.items[index].getAttribute('data-room-name') !== null) {
             roomName = _this.core.items[index].getAttribute('data-room-name');
@@ -160,6 +175,8 @@ Thumbnail.prototype.build = function () {
         if (_this.core.items[index].getAttribute('data-last-of-room')) {
             lastOfRoom = 'last';
         }
+        var belongsToAttr = "data-belongs-to=" + belongsTo;
+
         var belongsTo = _this.core.items[index].getAttribute('data-belongs-to');
 
         var isPlanImage = _this.core.items[index].getAttribute('data-plan-images');
@@ -186,7 +203,8 @@ Thumbnail.prototype.build = function () {
         }
 
         // CUSTOMIZED `thumbList`
-        thumbList += '<div class="lg-thumb-wrapper ' + planImageClass + '" data-belongs-to="' + belongsTo + '">';
+        thumbList += '<div class="lg-thumb-wrapper ' + planImageClass + belongsToAttr + '" data-plan-name="' + planName +
+            '" data-floor-name="' + floorName + '">';
         thumbList += '<div class="names">' + roomName + '</div>'
         thumbList += '<div data-vimeo-id="' + vimeoId + '" class="lg-thumb-item ' + lastOfRoom + ' ' + outsideRoomClass +
             '" style="width:' + thumbWidth + 'px;">';
@@ -221,6 +239,7 @@ Thumbnail.prototype.build = function () {
     }
 
     _this.core.outer.querySelector('.lg-thumb').innerHTML = thumbList;
+    // _this.core.outer.querySelector('.lg-toolbar').innerHTML = _this.core.items[index].getAttribute('data-floor-name');
 
     $thumb = _this.core.outer.querySelectorAll('.lg-thumb-item');
     $thumbWrapper = _this.core.outer.querySelectorAll('.lg-thumb-wrapper');
@@ -250,11 +269,21 @@ Thumbnail.prototype.build = function () {
     utils.addClass($thumbWrapper[_this.core.index], 'active-group');
 
     utils.on(_this.core.el, 'onBeforeSlide.lgtm', function () {
+        var floorName = $thumbWrapper[_this.core.index].getAttribute('data-floor-name');
+        var planName = $thumbWrapper[_this.core.index].getAttribute('data-plan-name');
+        var containerElem = document.createElement('div');
+
+        containerElem.className = 'lg-plan-floor-name-container';
+        _this.core.outer.querySelector('.lg-toolbar').appendChild(containerElem);
+        _this.core.outer.querySelector('.lg-plan-floor-name-container').innerHTML = '<strong class="lg-plan-name">' + planName + '</strong>'
+            + '<span class="lg-name-separator">:  </span>'
+            + '<span class="lg-floor-name">' + floorName + '</span>';
 
         for (var j = 0; j < $thumb.length; j++) {
             utils.removeClass($thumb[j], 'active');
             utils.removeClass($thumbWrapper[j], 'active-group');
         }
+
 
         utils.addClass($thumb[_this.core.index], 'active');
 
